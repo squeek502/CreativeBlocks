@@ -1,0 +1,16 @@
+[
+{
+  "modid": "CreativeBlocks",
+  "name": "Creative Blocks",
+  "description": "Allows specified blocks to be placed as if the player was in creative mode",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["squeek"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

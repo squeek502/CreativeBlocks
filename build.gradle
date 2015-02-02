@@ -1,0 +1,73 @@
+buildscript {
+	repositories {
+		mavenCentral()
+		maven {
+			name = "forge"
+			url = "http://files.minecraftforge.net/maven"
+		}
+		maven {
+			name = "sonatype"
+			url = "https://oss.sonatype.org/content/repositories/snapshots/"
+		}
+	}
+	dependencies {
+		classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+	}
+}
+
+apply plugin: 'forge'
+
+minecraft {
+	version = "1.7.10-10.13.1.1225"
+}
+
+group = project.projectDir.name.toLowerCase()
+archivesBaseName = project.projectDir.name + "-mc" + project.minecraft.version
+
+sourceSets.main{
+	java {
+		srcDirs 'java', 'apis'
+	}
+	resources {
+		srcDirs 'resources'
+	}
+}
+
+dependencies {
+	compile fileTree(dir: 'libs', include: '*.jar,*.zip')
+}
+
+jar {
+	manifest {
+		attributes 'FMLCorePlugin': 'squeek.creativeblocks.ASMPlugin'
+		attributes 'FMLCorePluginContainsFMLMod': 'true'
+	}
+}
+
+// variable substitution in java files
+task processSourceMainJava(type:Copy) {
+	inputs.property "vars", project.version + project.minecraft.version
+	from('java')
+	{
+		include '**/ModInfo.java'
+		include '**/package-info.java'
+		expand 'version':project.version, 'mcversion':project.minecraft.version
+	}
+	into project.buildDir.getPath()+"/sources/java"
+}
+
+// correct task ordering
+afterEvaluate { project ->
+	sourceMainJava.finalizedBy(processSourceMainJava)
+}
+
+processResources {
+	inputs.property "vars", project.version + project.minecraft.version
+	from(sourceSets.main.resources.srcDirs) {
+		include '**/*.info'
+		expand 'version':project.version, 'mcversion':project.minecraft.version
+	}
+	from(sourceSets.main.resources.srcDirs) {
+		exclude '**/*.info'
+	}
+}
