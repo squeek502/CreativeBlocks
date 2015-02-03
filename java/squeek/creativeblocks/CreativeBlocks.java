@@ -16,6 +16,7 @@ import squeek.creativeblocks.config.CreativeBlocksRegistry;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
+import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -36,6 +37,7 @@ public class CreativeBlocks
 		sourceFile = event.getSourceFile();
 		MinecraftForge.EVENT_BUS.register(this);
 		JSONConfigHandler.setup(event.getModConfigurationDirectory());
+		FMLInterModComms.sendMessage("VersionChecker", "addVersionCheck", "http://www.ryanliptak.com/minecraft/versionchecker/squeek502/CreativeBlocks");
 	}
 
 	@EventHandler
