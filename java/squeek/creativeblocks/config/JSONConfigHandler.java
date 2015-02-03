@@ -32,12 +32,19 @@ public class JSONConfigHandler
 			configFiles.add(potentialConfigFile);
 		}
 		if (shouldWriteDefaultConfig())
-			writeDefaultConfig(modConfigDirectory);
+		{
+			File defaultConfigDest = new File(configDirectory, defaultConfigFileName);
+			boolean wasOverwritten = defaultConfigDest.exists();
+
+			writeDefaultConfig(defaultConfigDest);
+
+			if (!wasOverwritten && defaultConfigDest.exists())
+				configFiles.add(defaultConfigDest);
+		}
 	}
 
-	public static void writeDefaultConfig(File configDirectory)
+	public static void writeDefaultConfig(File defaultConfigDest)
 	{
-		File defaultConfigDest = new File(configDirectory, defaultConfigFileName);
 		try
 		{
 			if (CreativeBlocks.instance.sourceFile.isDirectory())
