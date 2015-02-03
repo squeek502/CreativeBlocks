@@ -4,7 +4,7 @@ Creative Blocks
 A Minecraft mod that allows specified blocks to be placed as if the player was in creative mode
 
 ### Current features:
-- Config for whitelisting blocks as 'creative' (see config/CreativeBlocks/default.json after running Minecraft once with the mod installed)
+- Config for whitelisting blocks as 'creative' (see `config/CreativeBlocks/default.json` after running Minecraft once with the mod installed)
 - Whitelisted blocks do not get used up when placed (like in creative)
 - Whitelisted blocks do not drop anything when broken (like in creative)
 - Whitelisted blocks get broken in one hit (like in creative)
