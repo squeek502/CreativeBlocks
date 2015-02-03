@@ -56,7 +56,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 			method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "activateBlockOrUseItem", isObfuscated ? "(Lyz;Lahb;Ladd;IIIIFFF)Z" : "(Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/world/World;Lnet/minecraft/item/ItemStack;IIIIFFF)Z");
 			if (method == null)
 				throw new RuntimeException("Couldn't find ItemInWorldManager.activateBlockOrUseItem");
-			targetInsn = findTargetInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
+			targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
 			if (targetInsn == null)
 				throw new RuntimeException("Couldn't find target instruction in ItemInWorldManager.activateBlockOrUseItem");
 			transformIfCreativeBlock(method, targetInsn, getItemStackCheckInsns());
@@ -64,7 +64,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 			method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "onBlockClicked", "(IIII)V");
 			if (method == null)
 				throw new RuntimeException("Couldn't find ItemInWorldManager.onBlockClicked");
-			targetInsn = findTargetInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
+			targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
 			if (targetInsn == null)
 				throw new RuntimeException("Couldn't find target instruction in ItemInWorldManager.onBlockClicked");
 			transformIfCreativeBlock(method, targetInsn, getServerCoordinatesCheckInsns(classNode));
@@ -72,7 +72,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 			method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "tryHarvestBlock", "(III)Z");
 			if (method == null)
 				throw new RuntimeException("Couldn't find ItemInWorldManager.tryHarvestBlock");
-			targetInsn = findTargetInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
+			targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
 			if (targetInsn == null)
 				throw new RuntimeException("Couldn't find target instruction in ItemInWorldManager.tryHarvestBlock");
 			transformIfCreativeBlock(method, targetInsn, getServerCoordinatesCheckInsns(classNode));
@@ -88,7 +88,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 			method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "onPlayerRightClick", isObfuscated ? "(Lyz;Lahb;Ladd;IIIILazw;)Z" : "(Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/world/World;Lnet/minecraft/item/ItemStack;IIIILnet/minecraft/util/Vec3;)Z");
 			if (method == null)
 				throw new RuntimeException("Couldn't find PlayerControllerMP.onPlayerRightClick");
-			targetInsn = findTargetInsn(method, isObfuscated ? "ahk" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+			targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahk" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
 			if (targetInsn == null)
 				throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.onPlayerRightClick");
 			transformIfCreativeBlock(method, targetInsn, getItemStackCheckInsns());
@@ -96,7 +96,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 			method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "clickBlock", "(IIII)V");
 			if (method == null)
 				throw new RuntimeException("Couldn't find PlayerControllerMP.clickBlock");
-			targetInsn = findTargetInsn(method, isObfuscated ? "ahk" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+			targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahk" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
 			if (targetInsn == null)
 				throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.clickBlock");
 			transformIfCreativeBlock(method, targetInsn, getClientCoordinatesCheckInsns(classNode));
@@ -104,13 +104,15 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 			method = findMethodNodeOfClass(classNode, isObfuscated ? "c" : "onPlayerDamageBlock", "(IIII)V");
 			if (method == null)
 				throw new RuntimeException("Couldn't find PlayerControllerMP.onPlayerDamageBlock");
-			targetInsn = findTargetInsn(method, isObfuscated ? "ahk" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+			targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahk" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
 			if (targetInsn == null)
 				throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.onPlayerDamageBlock");
 			transformIfCreativeBlock(method, targetInsn, getClientCoordinatesCheckInsns(classNode));
-			
-			//TODO: onPlayerDestroyBlock
-			// two method-specific isCreative checks
+
+			method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "onPlayerDestroyBlock", "(IIII)Z");
+			if (method == null)
+				throw new RuntimeException("Couldn't find PlayerControllerMP.onPlayerDestroyBlock");
+			transformOnPlayerDestroyBlock(classNode, method);
 
 			return writeClassToBytes(classNode);
 		}
@@ -144,18 +146,41 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 		return null;
 	}
 
-	private AbstractInsnNode findTargetInsn(MethodNode method, String owner, String name, String desc)
+	private LabelNode findEndLabel(MethodNode method)
 	{
-		for (AbstractInsnNode curInsn = method.instructions.getFirst(); curInsn != null; curInsn = curInsn.getNext())
+		for (AbstractInsnNode instruction = method.instructions.getLast(); instruction != null; instruction = instruction.getPrevious())
+		{
+			if (instruction instanceof LabelNode)
+				return (LabelNode) instruction;
+		}
+		return null;
+	}
+
+	private AbstractInsnNode findFirstInstruction(MethodNode method)
+	{
+		for (AbstractInsnNode instruction = method.instructions.getFirst(); instruction != null; instruction = instruction.getNext())
+		{
+			if (instruction.getType() != AbstractInsnNode.LABEL && instruction.getType() != AbstractInsnNode.LINE)
+				return instruction;
+		}
+		return null;
+	}
+
+	private AbstractInsnNode findIsCreativeInsn(MethodNode method, String owner, String name, String desc)
+	{
+		return findIsCreativeInsn(method.instructions.getFirst(), owner, name, desc);
+	}
+
+	private AbstractInsnNode findIsCreativeInsn(AbstractInsnNode firstInsnToCheck, String owner, String name, String desc)
+	{
+		for (AbstractInsnNode curInsn = firstInsnToCheck; curInsn != null; curInsn = curInsn.getNext())
 		{
 			if (curInsn.getOpcode() == Opcodes.INVOKEVIRTUAL
 					&& ((MethodInsnNode) curInsn).owner.equals(owner)
 					&& ((MethodInsnNode) curInsn).name.equals(name)
 					&& ((MethodInsnNode) curInsn).desc.equals(desc)
 					&& curInsn.getNext() != null
-					&& curInsn.getNext().getOpcode() == Opcodes.IFEQ
-					&& curInsn.getNext().getNext() != null
-					&& curInsn.getNext().getNext().getType() == AbstractInsnNode.LABEL)
+					&& curInsn.getNext().getType() == AbstractInsnNode.JUMP_INSN)
 			{
 				return curInsn;
 			}
@@ -208,6 +233,56 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 		InsnList toInject = new InsnList();
 		toInject.add(checkInsns);
 		toInject.add(new JumpInsnNode(Opcodes.IFEQ, afterIf));
+
+		method.instructions.insert(ifCreative, toInject);
+	}
+
+	// two method-specific isCreative checks
+	private void transformOnPlayerDestroyBlock(ClassNode classNode, MethodNode method)
+	{
+		// have to store the result because the second isCreative check
+		// is after the block has been cleared
+		LabelNode isCreativeBlockStart = new LabelNode();
+		LabelNode end = findEndLabel(method);
+		LocalVariableNode isCreativeBlock = new LocalVariableNode("isCreativeBlock", "Z", null, isCreativeBlockStart, end, method.maxLocals);
+		method.maxLocals += 1;
+		method.localVariables.add(isCreativeBlock);
+
+		InsnList toInject = new InsnList();
+		toInject.add(getClientCoordinatesCheckInsns(classNode));
+		toInject.add(new VarInsnNode(Opcodes.ISTORE, isCreativeBlock.index));
+		toInject.add(isCreativeBlockStart);
+
+		method.instructions.insertBefore(findFirstInstruction(method), toInject);
+
+		AbstractInsnNode targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahk" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+		if (targetInsn == null)
+			throw new RuntimeException("Couldn't find first target instruction in PlayerControllerMP.onPlayerDestroyBlock");
+
+		JumpInsnNode ifCreative = (JumpInsnNode) targetInsn.getNext();
+		LabelNode afterIf = ifCreative.label;
+		LabelNode afterOr = new LabelNode();
+
+		ifCreative.label = afterOr;
+		ifCreative.setOpcode(Opcodes.IFNE);
+
+		toInject = new InsnList();
+		toInject.add(new VarInsnNode(Opcodes.ILOAD, isCreativeBlock.index));
+		toInject.add(new JumpInsnNode(Opcodes.IFEQ, afterIf));
+		toInject.add(afterOr);
+
+		method.instructions.insert(ifCreative, toInject);
+
+		targetInsn = findIsCreativeInsn(ifCreative, isObfuscated ? "ahk" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+		if (targetInsn == null)
+			throw new RuntimeException("Couldn't find second target instruction in PlayerControllerMP.onPlayerDestroyBlock");
+
+		ifCreative = (JumpInsnNode) targetInsn.getNext();
+		afterIf = ifCreative.label;
+
+		toInject = new InsnList();
+		toInject.add(new VarInsnNode(Opcodes.ILOAD, isCreativeBlock.index));
+		toInject.add(new JumpInsnNode(Opcodes.IFNE, afterIf));
 
 		method.instructions.insert(ifCreative, toInject);
 	}
