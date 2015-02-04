@@ -31,14 +31,16 @@ public class JSONConfigHandler
 
 			configFiles.add(potentialConfigFile);
 		}
-		if (shouldWriteDefaultConfig())
+		File defaultConfigDest = new File(modConfigDirectory, defaultConfigFileName);
+		if (shouldWriteDefaultConfig(defaultConfigDest))
 		{
-			File defaultConfigDest = new File(configDirectory, defaultConfigFileName);
 			boolean wasOverwritten = defaultConfigDest.exists();
 
 			writeDefaultConfig(defaultConfigDest);
 
-			if (!wasOverwritten && defaultConfigDest.exists())
+			if (!defaultConfigDest.exists())
+				CreativeBlocks.Log.warn("Default config failed to be written");
+			else if (!wasOverwritten)
 				configFiles.add(defaultConfigDest);
 		}
 	}
@@ -65,20 +67,17 @@ public class JSONConfigHandler
 		}
 	}
 
-	public static boolean shouldWriteDefaultConfig()
+	public static boolean shouldWriteDefaultConfig(File defaultConfigDest)
 	{
-		// create default if there are no other .json files
-		if (configFiles.isEmpty())
-			return true;
-
 		// update default if it already exists
-		for (File configFile : configFiles)
-		{
-			if (configFile.getName().equalsIgnoreCase(defaultConfigFileName))
-				return true;
-		}
-
-		return false;
+		if (defaultConfigDest.exists())
+			return true;
+		// create default if there are no other .json files
+		else if (configFiles.isEmpty())
+			return true;
+		// don't reinstate default if it doesn't exist and other .json files do
+		else
+			return false;
 	}
 
 	public static void load()
