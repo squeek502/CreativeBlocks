@@ -1,16 +1,19 @@
 package squeek.creativeblocks.config;
 
+import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraftforge.oredict.OreDictionary;
 import squeek.creativeblocks.CreativeBlocks;
+import squeek.creativeblocks.network.IPackable;
 import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 
-public class BlocksSpecifier
+public class BlocksSpecifier implements IPackable
 {
 	public static class ComparableBlock
 	{
@@ -32,6 +35,53 @@ public class BlocksSpecifier
 
 	public String unresolvedString = null;
 	public List<ComparableBlock> blocks = new ArrayList<ComparableBlock>();
+
+	public BlocksSpecifier()
+	{
+
+	}
+
+	public BlocksSpecifier(String unresolvedString)
+	{
+		this.unresolvedString = unresolvedString;
+		initializeFromString(unresolvedString);
+	}
+
+	protected void initializeFromString(String unresolvedString)
+	{
+		if (unresolvedString == null)
+			return;
+
+		String[] itemStringParts = unresolvedString.split(":");
+
+		if (itemStringParts.length < 1)
+			return;
+
+		if (!itemStringParts[0].equals("minecraft") && !Loader.isModLoaded(itemStringParts[0]))
+			return;
+
+		boolean anyMetadata = itemStringParts.length < 3 || itemStringParts[2].equals("*");
+		int metadata = anyMetadata ? ComparableBlock.WILDCARD_META : Integer.parseInt(itemStringParts[2]);
+
+		if (itemStringParts[1].equals("*"))
+		{
+			List<Block> allModBlocks = getAllBlocksOfModID(itemStringParts[0]);
+			for (Block block : allModBlocks)
+			{
+				blocks.add(new ComparableBlock(block, metadata));
+			}
+		}
+		else
+		{
+			Block block = GameRegistry.findBlock(itemStringParts[0], itemStringParts[1]);
+			if (block != null)
+			{
+				blocks.add(new ComparableBlock(block, metadata));
+			}
+			else
+				CreativeBlocks.Log.warn("Unable to find block: " + unresolvedString);
+		}
+	}
 
 	public boolean contains(Block block, int meta)
 	{
@@ -71,48 +121,6 @@ public class BlocksSpecifier
 		}
 	}
 
-	public static BlocksSpecifier fromString(String unresolvedString)
-	{
-		BlocksSpecifier blockSpecifier = new BlocksSpecifier();
-
-		if (unresolvedString == null)
-			return blockSpecifier;
-
-		blockSpecifier.unresolvedString = unresolvedString;
-
-		String[] itemStringParts = unresolvedString.split(":");
-
-		if (itemStringParts.length < 1)
-			return blockSpecifier;
-
-		if (!itemStringParts[0].equals("minecraft") && !Loader.isModLoaded(itemStringParts[0]))
-			return blockSpecifier;
-
-		boolean anyMetadata = itemStringParts.length < 3 || itemStringParts[2].equals("*");
-		int metadata = anyMetadata ? ComparableBlock.WILDCARD_META : Integer.parseInt(itemStringParts[2]);
-
-		if (itemStringParts[1].equals("*"))
-		{
-			List<Block> allModBlocks = getAllBlocksOfModID(itemStringParts[0]);
-			for (Block block : allModBlocks)
-			{
-				blockSpecifier.blocks.add(new ComparableBlock(block, metadata));
-			}
-		}
-		else
-		{
-			Block block = GameRegistry.findBlock(itemStringParts[0], itemStringParts[1]);
-			if (block != null)
-			{
-				blockSpecifier.blocks.add(new ComparableBlock(block, metadata));
-			}
-			else
-				CreativeBlocks.Log.warn("Unable to find block: " + unresolvedString);
-		}
-
-		return blockSpecifier;
-	}
-
 	@SuppressWarnings("unchecked")
 	public static List<Block> getAllBlocksOfModID(String modID)
 	{
@@ -125,5 +133,18 @@ public class BlocksSpecifier
 			blocks.add(GameData.getBlockRegistry().getObject(blockName));
 		}
 		return blocks;
+	}
+
+	@Override
+	public void pack(ByteBuf data)
+	{
+		ByteBufUtils.writeUTF8String(data, unresolvedString);
+	}
+
+	@Override
+	public void unpack(ByteBuf data)
+	{
+		unresolvedString = ByteBufUtils.readUTF8String(data);
+		initializeFromString(unresolvedString);
 	}
 }

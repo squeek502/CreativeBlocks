@@ -92,11 +92,11 @@ public class JSONConfigHandler
 				{
 					for (String blockToWhitelist : parsedConfig.blockWhitelist)
 					{
-						CreativeBlocksRegistry.whitelists.add(BlocksSpecifier.fromString(blockToWhitelist));
+						CreativeBlocksRegistry.whitelists.add(new BlocksSpecifier(blockToWhitelist));
 					}
 					for (String blockToBlacklist : parsedConfig.blockBlacklist)
 					{
-						CreativeBlocksRegistry.blacklists.add(BlocksSpecifier.fromString(blockToBlacklist));
+						CreativeBlocksRegistry.blacklists.add(new BlocksSpecifier(blockToBlacklist));
 					}
 				}
 				reader.close();

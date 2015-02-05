@@ -11,8 +11,9 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import squeek.creativeblocks.config.JSONConfigHandler;
 import squeek.creativeblocks.config.CreativeBlocksRegistry;
+import squeek.creativeblocks.config.JSONConfigHandler;
+import squeek.creativeblocks.network.NetworkHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
@@ -36,7 +37,11 @@ public class CreativeBlocks
 	{
 		sourceFile = event.getSourceFile();
 		MinecraftForge.EVENT_BUS.register(this);
+
 		JSONConfigHandler.setup(event.getModConfigurationDirectory());
+		CreativeBlocksRegistry.init();
+		NetworkHandler.init();
+
 		FMLInterModComms.sendMessage("VersionChecker", "addVersionCheck", "http://www.ryanliptak.com/minecraft/versionchecker/squeek502/CreativeBlocks");
 	}
 
