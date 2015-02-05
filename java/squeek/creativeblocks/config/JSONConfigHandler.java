@@ -16,9 +16,11 @@ public class JSONConfigHandler
 	private static List<File> configFiles = new ArrayList<File>();
 	public static final String defaultConfigFileName = "default.json";
 	public static final String defaultConfigRelativePath = "config/" + defaultConfigFileName;
+	public static File configDirectory = null;
 
 	public static void setup(File configDirectory)
 	{
+		JSONConfigHandler.configDirectory = configDirectory;
 		File modConfigDirectory = new File(configDirectory, ModInfo.MODID);
 		if (!modConfigDirectory.exists())
 		{
@@ -112,4 +114,12 @@ public class JSONConfigHandler
 		}
 	}
 
+	public static void reload()
+	{
+		CreativeBlocksRegistry.invalidate();
+		configFiles.clear();
+		setup(configDirectory);
+		load();
+		CreativeBlocksRegistry.sync();
+	}
 }

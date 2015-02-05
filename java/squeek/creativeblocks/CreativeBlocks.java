@@ -11,6 +11,7 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import squeek.creativeblocks.commands.Commands;
 import squeek.creativeblocks.config.CreativeBlocksRegistry;
 import squeek.creativeblocks.config.JSONConfigHandler;
 import squeek.creativeblocks.network.NetworkHandler;
@@ -20,6 +21,7 @@ import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
@@ -50,6 +52,12 @@ public class CreativeBlocks
 	public void postInit(FMLPostInitializationEvent event)
 	{
 		JSONConfigHandler.load();
+	}
+
+	@EventHandler
+	public void onServerStarting(FMLServerStartingEvent event)
+	{
+		Commands.init(event.getServer());
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)

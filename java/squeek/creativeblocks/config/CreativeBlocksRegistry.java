@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import squeek.creativeblocks.network.MessageInvalidateCreativeBlocksRegistry;
 import squeek.creativeblocks.network.MessageSyncCreativeBlocks;
 import squeek.creativeblocks.network.NetworkHandler;
@@ -70,6 +71,15 @@ public class CreativeBlocksRegistry
 				continue;
 
 			NetworkHandler.channel.sendTo(new MessageSyncCreativeBlocks(blocksSpecifier, false), player);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static void sync()
+	{
+		for (EntityPlayerMP player : (List<EntityPlayerMP>) MinecraftServer.getServer().getConfigurationManager().playerEntityList)
+		{
+			sync(player);
 		}
 	}
 }
