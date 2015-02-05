@@ -42,6 +42,7 @@ public class CreativeBlocks
 		CreativeBlocksRegistry.init();
 		NetworkHandler.init();
 
+		FMLInterModComms.sendMessage("Waila", "register", "squeek.creativeblocks.integration.waila.WailaRegistrar.register");
 		FMLInterModComms.sendMessage("VersionChecker", "addVersionCheck", "http://www.ryanliptak.com/minecraft/versionchecker/squeek502/CreativeBlocks");
 	}
 
