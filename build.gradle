@@ -56,9 +56,15 @@ task processSourceMainJava(type:Copy) {
 	into project.buildDir.getPath()+"/sources/java"
 }
 
+// remove waila api from the build
+task removeWailaAPI(type:Delete) {
+	delete += sourceSets.main.output.classesDir.getPath()+"/mcp"
+}
+
 // correct task ordering
 afterEvaluate { project ->
 	sourceMainJava.finalizedBy(processSourceMainJava)
+	compileJava.finalizedBy(removeWailaAPI)
 }
 
 processResources {
