@@ -4,6 +4,11 @@
 //
 // If you want to customize this file, you must rename it.
 // Otherwise, simply create new .json files with the same structure and leave this file alone.
+//
+// Configs will be synced from the server to the client, meaning that for server-play, only the
+// server's configs matter.
+//
+// You can reload the server's configs while playing by using the command: /creativeblocks reload
 {
 	// A list of blocks in "modid:blockname:meta" format to set as Creative Blocks
 	//  modid: The mod ID of the mod that the block belongs to
