@@ -13,5 +13,6 @@ public class NetworkHandler
 	{
 		channel.registerMessage(MessageInvalidateCreativeBlocksRegistry.class, MessageInvalidateCreativeBlocksRegistry.class, 0, Side.CLIENT);
 		channel.registerMessage(MessageSyncCreativeBlocks.class, MessageSyncCreativeBlocks.class, 1, Side.CLIENT);
+		channel.registerMessage(MessageSetInventorySlot.class, MessageSetInventorySlot.class, 2, Side.SERVER);
 	}
 }

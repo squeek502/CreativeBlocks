@@ -116,6 +116,28 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 
 			return writeClassToBytes(classNode);
 		}
+		else if (transformedName.equals("net.minecraft.client.Minecraft"))
+		{
+			ClassNode classNode = readClassFromBytes(bytes);
+			MethodNode method;
+
+			method = findMethodNodeOfClass(classNode, isObfuscated ? "ao" : "func_147112_ai", "()V");
+			if (method == null)
+				throw new RuntimeException("Couldn't find Minecraft.func_147112_ai");
+
+			AbstractInsnNode targetInsn = findFirstInstruction(method);
+
+			InsnList toInject = new InsnList();
+			toInject.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(CreativeBlocks.class), "onPickBlock", "()Z", false));
+			LabelNode labelIfFalse = new LabelNode();
+			toInject.add(new JumpInsnNode(Opcodes.IFEQ, labelIfFalse));
+			toInject.add(new InsnNode(Opcodes.RETURN));
+			toInject.add(labelIfFalse);
+
+			method.instructions.insertBefore(targetInsn, toInject);
+
+			return writeClassToBytes(classNode);
+		}
 		return bytes;
 	}
 
