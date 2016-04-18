@@ -1,63 +1,63 @@
 package squeek.creativeblocks.commands;
 
-import java.util.Arrays;
-import java.util.List;
-import net.minecraft.command.CommandBase;
-import net.minecraft.command.ICommand;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
+import net.minecraft.command.*;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.BlockPos;
 import squeek.creativeblocks.config.JSONConfigHandler;
+
+import java.util.Collections;
+import java.util.List;
 
 public class CommandCreativeBlocks extends CommandBase
 {
-	@Override
-	public String getCommandName()
-	{
-		return "creativeblocks";
-	}
+    @Override
+    public String getCommandName()
+    {
+        return "creativeblocks";
+    }
 
-	@Override
-	public String getCommandUsage(ICommandSender icommandsender)
-	{
-		return "/creativeblocks reload";
-	}
+    @Override
+    public String getCommandUsage(ICommandSender icommandsender)
+    {
+        return "/creativeblocks reload";
+    }
 
-	@Override
-	public int getRequiredPermissionLevel()
-	{
-		return 4;
-	}
+    @Override
+    public int getRequiredPermissionLevel()
+    {
+        return 4;
+    }
 
-	@Override
-	public void processCommand(ICommandSender commandSender, String[] args)
-	{
-		if (args.length > 0 && args[0].equalsIgnoreCase("reload"))
-		{
-			func_152374_a(commandSender, this, 1, "Reloading Creative Blocks from config...");
-			JSONConfigHandler.reload();
-		}
-		else
-		{
-			throw new WrongUsageException(getCommandUsage(commandSender));
-		}
-	}
+    @Override
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
+    {
+        if (args.length > 0 && args[0].equalsIgnoreCase("reload"))
+        {
+            notifyOperators(sender, this, 1, "Reloading Creative Blocks from config...");
+            JSONConfigHandler.reload();
+        }
+        else
+        {
+            throw new WrongUsageException(getCommandUsage(sender));
+        }
+    }
 
-	@SuppressWarnings("rawtypes")
-	@Override
-	public List addTabCompletionOptions(ICommandSender commandSender, String[] curArgs)
-	{
-		if (curArgs.length == 1)
-			return Arrays.asList(new String[]{"reload"});
-		else
-			return null;
-	}
+    @Override
+    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
+    {
+        if (args.length == 1)
+        {
+            return Collections.singletonList("reload");
+        }
+        else
+        {
+            return null;
+        }
+    }
 
-	@Override
-	public int compareTo(Object obj)
-	{
-		if (obj instanceof ICommand)
-			return super.compareTo((ICommand) obj);
-		else
-			return 0;
-	}
+    @Override
+    public int compareTo(ICommand p_compareTo_1_)
+    {
+        return super.compareTo(p_compareTo_1_);
+    }
 }

@@ -1,44 +1,22 @@
-# Builds & binaries
-build/
-bin/
-target/
-lib/
-launcher/
-.gradle/
-*.zip
-*.jar
-
-# Misc mod files
-media/
-libs/
-stream/
-sources/
-dummy/
-
-# Tmp files
-*~
-*#
-
-# IDEs
+# eclipse
+bin
+*.launch
+.settings
+.metadata
 .classpath
 .project
-.settings
-.pydevproject
 
-# MCP Files
-docs/
-conf/
-eclipse/
-jars/
-logs/
-runtime/
-temp/
-reobf/
-CHANGELOG
-LICENSE.txt
-*.bat
-*.sh
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
 
-# Misc
-*.rej
-/java/net
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run

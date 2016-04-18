@@ -10,44 +10,48 @@
 //
 // You can reload the server's configs while playing by using the command: /creativeblocks reload
 {
-	// A list of blocks in "modid:blockname:meta" format to set as Creative Blocks
-	//  modid: The mod ID of the mod that the block belongs to
-	//  blockname: The name that the block was registered with. Use * to specify ALL blocks of the given mod
-	//  meta: [Optional] The metadata of the block. If not specified, defaults to * (any metadata)
-	//
-	// NOTE: The blacklist takes precedence over the whitelist; any blocks specified in the blacklist will not
-	// be added as creative blocks no matter what
-	"blockWhitelist": [
-		//"minecraft:stonebrick", // not included because chiseled/mossy/cracked stone brick don't have a recipe by default, so they'd be unobtainable
-		"minecraft:sandstone:1", // chiseled sandstone
-		"minecraft:sandstone:2", // smooth sandstone
-		"minecraft:quartz_block:1", // chiseled quartz	
-		"minecraft:quartz_block:2", // pillar quartz
-		"minecraft:stained_hardened_clay",
-		"minecraft:stained_glass",
-		"minecraft:stained_glass_pane",
-		"chisel:*" // all chisel blocks
-	],
-
-	// A list of blocks in "modid:blockname:meta" format to stop from being Creative Blocks
-	//  modid: The mod ID of the mod that the block belongs to
-	//  blockname: The name that the block was registered with. Use * to specify ALL blocks of the given mod
-	//  meta: [Optional] The metadata of the block. If not specified, defaults to * (any metadata)
-	//
-	// NOTE: The blacklist takes precedence over the whitelist; any blocks specified in the blacklist will not
-	// be added as creative blocks no matter what
-	"blockBlacklist": [
-		// blacklist light emitting blocks
-		"chisel:torch1",
-		"chisel:torch2",
-		"chisel:torch3",
-		"chisel:torch4",
-		"chisel:torch5",
-		"chisel:torch6",
-		"chisel:torch7",
-		"chisel:torch8",
-		"chisel:torch9",
-		"chisel:torch10",
-		"chisel:glowstone"
-	]
+  // A list of blocks in "modid:blockname:meta" format to set as Creative Blocks
+  //  modid: The mod ID of the mod that the block belongs to
+  //  blockname: The name that the block was registered with. Use * to specify ALL blocks of the given mod
+  //  meta: [Optional] The metadata of the block. If not specified, defaults to * (any metadata)
+  //
+  // NOTE: The blacklist takes precedence over the whitelist; any blocks specified in the blacklist will not
+  // be added as creative blocks no matter what
+  "blockWhitelist": [
+    //"minecraft:stonebrick", // not included because chiseled/mossy/cracked stone brick don't have a recipe by default, so they'd be unobtainable
+    "minecraft:sandstone:1",
+    // chiseled sandstone
+    "minecraft:sandstone:2",
+    // smooth sandstone
+    "minecraft:quartz_block:1",
+    // chiseled quartz
+    "minecraft:quartz_block:2",
+    // pillar quartz
+    "minecraft:stained_hardened_clay",
+    "minecraft:stained_glass",
+    "minecraft:stained_glass_pane",
+    "chisel:*"
+    // all chisel blocks
+  ],
+  // A list of blocks in "modid:blockname:meta" format to stop from being Creative Blocks
+  //  modid: The mod ID of the mod that the block belongs to
+  //  blockname: The name that the block was registered with. Use * to specify ALL blocks of the given mod
+  //  meta: [Optional] The metadata of the block. If not specified, defaults to * (any metadata)
+  //
+  // NOTE: The blacklist takes precedence over the whitelist; any blocks specified in the blacklist will not
+  // be added as creative blocks no matter what
+  "blockBlacklist": [
+    // blacklist light emitting blocks
+    "chisel:torch1",
+    "chisel:torch2",
+    "chisel:torch3",
+    "chisel:torch4",
+    "chisel:torch5",
+    "chisel:torch6",
+    "chisel:torch7",
+    "chisel:torch8",
+    "chisel:torch9",
+    "chisel:torch10",
+    "chisel:glowstone"
+  ]
 }

@@ -1,152 +1,169 @@
 package squeek.creativeblocks.items;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import squeek.creativeblocks.CreativeBlocks;
 import squeek.creativeblocks.ModInfo;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemCreativeBlockPlacer extends Item
 {
-	public static final String NBT_KEY_BLOCK = "Block";
+    public static final String NBT_KEY_BLOCK = "Block";
 
-	public ItemCreativeBlockPlacer()
-	{
-		super();
-		setMaxStackSize(1);
-	}
+    public ItemCreativeBlockPlacer()
+    {
+        super();
+        this.setUnlocalizedName(ModInfo.MODID + ".creativeBlockPlacer");
+        setMaxStackSize(1);
+    }
 
-	@Override
-	public boolean onItemUse(ItemStack itemStack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ)
-	{
-		ItemStack blockToPlace = getBlock(itemStack);
-		if (blockToPlace != null)
-		{
-			return blockToPlace.tryPlaceItemIntoWorld(player, world, x, y, z, side, hitX, hitY, hitZ);
-		}
-		else
-			return super.onItemUse(itemStack, player, world, x, y, z, side, hitX, hitY, hitZ);
-	}
+    @Override
+    public EnumActionResult onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    {
+        ItemStack blockToPlace = getBlock(stack);
 
-	@Override
-	public String getItemStackDisplayName(ItemStack itemStack)
-	{
-		ItemStack pickedBlock = getBlock(itemStack);
-		return super.getItemStackDisplayName(itemStack) + (pickedBlock != null ? ": " + pickedBlock.getDisplayName() : "");
-	}
+        if (blockToPlace != null)
+        {
+            return blockToPlace.onItemUse(playerIn, worldIn, pos, hand, facing, hitX, hitY, hitZ);
+        }
+        else
+            return super.onItemUse(stack, playerIn, worldIn, pos, hand, facing, hitX, hitY, hitZ);
+    }
 
-	public boolean hasBlock(ItemStack itemStack)
-	{
-		return getBlock(itemStack) != null;
-	}
+    @Override
+    public String getItemStackDisplayName(ItemStack itemStack)
+    {
+        ItemStack pickedBlock = getBlock(itemStack);
+        return super.getItemStackDisplayName(itemStack) + (pickedBlock != null ? ": " + pickedBlock.getDisplayName() : "");
+    }
 
-	public ItemStack getBlock(ItemStack itemStack)
-	{
-		if (!itemStack.hasTagCompound())
-			return null;
+    public boolean hasBlock(ItemStack itemStack)
+    {
+        return getBlock(itemStack) != null;
+    }
 
-		NBTTagCompound tag = itemStack.getTagCompound();
+    public ItemStack getBlock(ItemStack itemStack)
+    {
+        if (itemStack == null)
+        {
+            CreativeBlocks.log.error("Tried to get block from ItemStack null");
+            return null;
+        }
 
-		if (!tag.hasKey(ModInfo.MODID))
-			return null;
+        if (!itemStack.hasTagCompound())
+            return null;
 
-		NBTTagCompound modTag = tag.getCompoundTag(ModInfo.MODID);
+        NBTTagCompound tag = itemStack.getTagCompound();
 
-		if (!modTag.hasKey(NBT_KEY_BLOCK))
-			return null;
+        if (!tag.hasKey(ModInfo.MODID))
+            return null;
 
-		NBTTagCompound blockTag = modTag.getCompoundTag(NBT_KEY_BLOCK);
+        NBTTagCompound modTag = tag.getCompoundTag(ModInfo.MODID);
 
-		return getItemStackFromNBT(blockTag);
-	}
+        if (!modTag.hasKey(NBT_KEY_BLOCK))
+            return null;
 
-	public boolean setBlock(ItemStack itemStack, ItemStack blockStack)
-	{
-		if (!CreativeBlocks.isCreativeBlock(blockStack))
-			return false;
+        NBTTagCompound blockTag = modTag.getCompoundTag(NBT_KEY_BLOCK);
 
-		if (!itemStack.hasTagCompound())
-			itemStack.setTagCompound(new NBTTagCompound());
+        return getItemStackFromNBT(blockTag);
+    }
 
-		NBTTagCompound tag = itemStack.getTagCompound();
+    public boolean setBlock(ItemStack itemStack, ItemStack blockStack)
+    {
+        if (!CreativeBlocks.isCreativeBlock(blockStack))
+            return false;
 
-		if (!tag.hasKey(ModInfo.MODID))
-			tag.setTag(ModInfo.MODID, new NBTTagCompound());
+        if (!itemStack.hasTagCompound())
+            itemStack.setTagCompound(new NBTTagCompound());
 
-		NBTTagCompound modTag = tag.getCompoundTag(ModInfo.MODID);
+        NBTTagCompound tag = itemStack.getTagCompound();
 
-		if (!modTag.hasKey(NBT_KEY_BLOCK))
-			modTag.setTag(NBT_KEY_BLOCK, new NBTTagCompound());
+        if (!tag.hasKey(ModInfo.MODID))
+            tag.setTag(ModInfo.MODID, new NBTTagCompound());
 
-		NBTTagCompound blockTag = modTag.getCompoundTag(NBT_KEY_BLOCK);
+        NBTTagCompound modTag = tag.getCompoundTag(ModInfo.MODID);
 
-		saveItemStackToNBT(blockTag, blockStack);
-		return true;
-	}
+        if (!modTag.hasKey(NBT_KEY_BLOCK))
+            modTag.setTag(NBT_KEY_BLOCK, new NBTTagCompound());
 
-	public void clearBlock(ItemStack itemStack)
-	{
-		if (!itemStack.hasTagCompound())
-			return;
+        NBTTagCompound blockTag = modTag.getCompoundTag(NBT_KEY_BLOCK);
 
-		NBTTagCompound tag = itemStack.getTagCompound();
+        saveItemStackToNBT(blockTag, blockStack);
+        return true;
+    }
 
-		if (!tag.hasKey(ModInfo.MODID))
-			return;
+    public void clearBlock(ItemStack itemStack)
+    {
+        if (!itemStack.hasTagCompound())
+            return;
 
-		NBTTagCompound modTag = tag.getCompoundTag(ModInfo.MODID);
+        NBTTagCompound tag = itemStack.getTagCompound();
 
-		if (!modTag.hasKey(NBT_KEY_BLOCK))
-			return;
+        if (!tag.hasKey(ModInfo.MODID))
+            return;
 
-		modTag.setTag(NBT_KEY_BLOCK, null);
-	}
+        NBTTagCompound modTag = tag.getCompoundTag(ModInfo.MODID);
 
-	@SideOnly(Side.CLIENT)
-	public ItemStack onPickBlock(ItemStack itemStack, MovingObjectPosition target, World world, EntityPlayer player)
-	{
-		if (target.typeOfHit == MovingObjectType.BLOCK)
-		{
-			int x = target.blockX;
-			int y = target.blockY;
-			int z = target.blockZ;
-			Block block = world.getBlock(x, y, z);
+        if (!modTag.hasKey(NBT_KEY_BLOCK))
+            return;
 
-			if (block.isAir(world, x, y, z))
-			{
-				return itemStack;
-			}
+        modTag.setTag(NBT_KEY_BLOCK, null);
+    }
 
-			ItemStack blockStack = block.getPickBlock(target, world, x, y, z);
+    @SideOnly(Side.CLIENT)
+    public ItemStack onPickBlock(ItemStack itemStack, RayTraceResult target, World world, EntityPlayer player)
+    {
+        if (target.typeOfHit == RayTraceResult.Type.BLOCK)
+        {
+            BlockPos pos = target.getBlockPos();
+            IBlockState state = world.getBlockState(pos);
+            Block block = state.getBlock();
 
-			if (setBlock(itemStack, blockStack))
-			{
-				player.swingItem();
-				setBlock(itemStack, blockStack);
-			}
-		}
-		else if (target.typeOfHit == MovingObjectType.MISS && hasBlock(itemStack))
-		{
-			player.swingItem();
-			clearBlock(itemStack);
-		}
-		return itemStack;
-	}
+            if (block.isAir(state, world, pos))
+            {
+                return itemStack;
+            }
 
-	public static ItemStack getItemStackFromNBT(NBTTagCompound tag)
-	{
-		return ItemStack.loadItemStackFromNBT(tag);
-	}
+            ItemStack blockStack = block.getPickBlock(state, target, world, pos, player);
 
-	public static void saveItemStackToNBT(NBTTagCompound tag, ItemStack itemStack)
-	{
-		itemStack.writeToNBT(tag);
-	}
+            if (setBlock(itemStack, blockStack))
+            {
+                player.swingArm(EnumHand.MAIN_HAND);
+                setBlock(itemStack, blockStack);
+            }
+        }
+        else if (target.typeOfHit == RayTraceResult.Type.MISS && hasBlock(itemStack))
+        {
+            player.swingArm(EnumHand.MAIN_HAND);
+            clearBlock(itemStack);
+        }
+        return itemStack;
+    }
+
+    public static ItemStack getItemStackFromNBT(NBTTagCompound tag)
+    {
+        return ItemStack.loadItemStackFromNBT(tag);
+    }
+
+    public static void saveItemStackToNBT(NBTTagCompound tag, ItemStack itemStack)
+    {
+        itemStack.writeToNBT(tag);
+    }
+
+    @Override
+    public boolean hasEffect(ItemStack stack)
+    {
+        return hasBlock(stack);
+    }
 }

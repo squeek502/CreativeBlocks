@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 
 public interface IPackable
 {
-	public void pack(ByteBuf data);
-	public void unpack(ByteBuf data);
+    void pack(ByteBuf data);
+
+    void unpack(ByteBuf data);
 }

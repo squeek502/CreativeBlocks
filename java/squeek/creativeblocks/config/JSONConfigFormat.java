@@ -5,6 +5,6 @@ import java.util.List;
 
 public class JSONConfigFormat
 {
-	public List<String> blockWhitelist = new ArrayList<String>();
-	public List<String> blockBlacklist = new ArrayList<String>();
+    public List<String> blockWhitelist = new ArrayList<String>();
+    public List<String> blockBlacklist = new ArrayList<String>();
 }
