@@ -32,6 +32,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import squeek.creativeblocks.commands.Commands;
+import squeek.creativeblocks.config.Config;
 import squeek.creativeblocks.config.CreativeBlocksRegistry;
 import squeek.creativeblocks.config.JSONConfigHandler;
 import squeek.creativeblocks.items.ItemCreativeBlockPlacer;
@@ -57,6 +58,7 @@ public class CreativeBlocks
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
+        Config.preInit(event);
         sourceFile = event.getSourceFile();
         MinecraftForge.EVENT_BUS.register(this);
 

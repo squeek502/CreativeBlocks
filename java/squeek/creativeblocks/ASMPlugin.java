@@ -1,12 +1,15 @@
 package squeek.creativeblocks;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.objectweb.asm.ClassReader;
@@ -14,6 +17,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
+import squeek.creativeblocks.config.Config;
 
 import java.util.Map;
 
@@ -70,23 +74,26 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
                 throw new RuntimeException("Couldn't find target instruction (this.isCreative()Z) in PlayerInteractionManager.processRightClickBlock");
             transformIfCreativeBlock(method, targetInsn, getItemStackCheckInsns());
 
-            /** {@link net.minecraft.server.management.PlayerInteractionManager#onBlockClicked(BlockPos, EnumFacing)} */
-            method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "onBlockClicked", isObfuscated ? "(Lcj;Lcq;)V" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)V");
-            if (method == null)
-                throw new RuntimeException("Couldn't find PlayerInteractionManager.onBlockClicked");
-            targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
-            if (targetInsn == null)
-                throw new RuntimeException("Couldn't find target instruction in PlayerInteractionManager.onBlockClicked");
-            transformIfCreativeBlock(method, targetInsn, getServerCoordinatesCheckInsns(classNode));
+            if (Config.oneHitBreak)
+            {
+                /** {@link net.minecraft.server.management.PlayerInteractionManager#onBlockClicked(BlockPos, EnumFacing)} */
+                method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "onBlockClicked", isObfuscated ? "(Lcj;Lcq;)V" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)V");
+                if (method == null)
+                    throw new RuntimeException("Couldn't find PlayerInteractionManager.onBlockClicked");
+                targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
+                if (targetInsn == null)
+                    throw new RuntimeException("Couldn't find target instruction in PlayerInteractionManager.onBlockClicked");
+                transformIfCreativeBlock(method, targetInsn, getServerCoordinatesCheckInsns(classNode));
 
-            /** {@link net.minecraft.server.management.PlayerInteractionManager#tryHarvestBlock(BlockPos)} */
-            method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "tryHarvestBlock", isObfuscated ? "(Lcj;)Z" : "(Lnet/minecraft/util/math/BlockPos;)Z");
-            if (method == null)
-                throw new RuntimeException("Couldn't find PlayerInteractionManager.tryHarvestBlock");
-            targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
-            if (targetInsn == null)
-                throw new RuntimeException("Couldn't find target instruction in PlayerInteractionManager.tryHarvestBlock");
-            transformIfCreativeBlock(method, targetInsn, getServerCoordinatesCheckInsns(classNode));
+                /** {@link net.minecraft.server.management.PlayerInteractionManager#tryHarvestBlock(BlockPos)} */
+                method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "tryHarvestBlock", isObfuscated ? "(Lcj;)Z" : "(Lnet/minecraft/util/math/BlockPos;)Z");
+                if (method == null)
+                    throw new RuntimeException("Couldn't find PlayerInteractionManager.tryHarvestBlock");
+                targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
+                if (targetInsn == null)
+                    throw new RuntimeException("Couldn't find target instruction in PlayerInteractionManager.tryHarvestBlock");
+                transformIfCreativeBlock(method, targetInsn, getServerCoordinatesCheckInsns(classNode));
+            }
 
             return writeClassToBytes(classNode);
         }
@@ -96,7 +103,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
             MethodNode method;
             AbstractInsnNode targetInsn;
 
-            /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#processRightClickBlock(EntityPlayer, World, ItemStack, EnumHand)} */
+            /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#processRightClickBlock(EntityPlayerSP, WorldClient, ItemStack, BlockPos, EnumFacing, Vec3d, EnumHand)} */
             method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "processRightClickBlock", isObfuscated ? "(Lbmt;Lbku;Ladq;Lcj;Lcq;Lbbj;Lqm;)Lqo;" : "(Lnet/minecraft/client/entity/EntityPlayerSP;Lnet/minecraft/client/multiplayer/WorldClient;Lnet/minecraft/item/ItemStack;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/EnumHand;)Lnet/minecraft/util/EnumActionResult;");
             if (method == null)
                 throw new RuntimeException("Couldn't find PlayerControllerMP.processRightClickBlock");
@@ -105,23 +112,26 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
                 throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.onPlayerRightClick");
             transformIfCreativeBlock(method, targetInsn, getItemStackCheckInsns());
 
-            /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#clickBlock(BlockPos, EnumFacing)}*/
-            method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "clickBlock", isObfuscated ? "(Lcj;Lcq;)Z" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z");
-            if (method == null)
-                throw new RuntimeException("Couldn't find PlayerControllerMP.clickBlock");
-            targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahw$a" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
-            if (targetInsn == null)
-                throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.clickBlock");
-            transformIfCreativeBlock(method, targetInsn, getClientCoordinatesCheckInsns(classNode));
+            if (Config.oneHitBreak)
+            {
+                /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#clickBlock(BlockPos, EnumFacing)}*/
+                method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "clickBlock", isObfuscated ? "(Lcj;Lcq;)Z" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z");
+                if (method == null)
+                    throw new RuntimeException("Couldn't find PlayerControllerMP.clickBlock");
+                targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahw$a" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+                if (targetInsn == null)
+                    throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.clickBlock");
+                transformIfCreativeBlock(method, targetInsn, getClientCoordinatesCheckInsns(classNode));
 
-            /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#onPlayerDamageBlock(BlockPos, EnumFacing)} */
-            method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "onPlayerDamageBlock", isObfuscated ? "(Lcj;Lcq;)Z" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z");
-            if (method == null)
-                throw new RuntimeException("Couldn't find PlayerControllerMP.onPlayerDamageBlock");
-            targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahw$a" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
-            if (targetInsn == null)
-                throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.onPlayerDamageBlock");
-            transformOnPlayerDamageBlock(method, targetInsn, getClientCoordinatesCheckInsns(classNode));
+                /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#onPlayerDamageBlock(BlockPos, EnumFacing)} */
+                method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "onPlayerDamageBlock", isObfuscated ? "(Lcj;Lcq;)Z" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z");
+                if (method == null)
+                    throw new RuntimeException("Couldn't find PlayerControllerMP.onPlayerDamageBlock");
+                targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahw$a" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+                if (targetInsn == null)
+                    throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.onPlayerDamageBlock");
+                transformOnPlayerDamageBlock(method, targetInsn, getClientCoordinatesCheckInsns(classNode));
+            }
 
             // onPlayerDestroyBlock = func_187103_a
             /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#func_187103_a(BlockPos)}  */
