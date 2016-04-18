@@ -35,6 +35,9 @@ minecraft {
     // simply re-run your setup task after changing the mappings to update your workspace.
     mappings = "snapshot_20160312"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+
+    replace "\${version}", project.version
+    replaceIn "ModInfo.java"
 }
 
 sourceSets.main{
@@ -63,23 +66,6 @@ jar
 		attributes 'FMLCorePlugin': 'squeek.creativeblocks.ASMPlugin'
 		attributes 'FMLCorePluginContainsFMLMod': 'true'
 	}
-}
-
-// variable substitution in java files
-task processSourceMainJava(type:Copy) {
-	inputs.property "vars", project.version + project.minecraft.version
-	from('java')
-	{
-		include '**/ModInfo.java'
-		include '**/package-info.java'
-		expand 'version':project.version, 'mcversion':project.minecraft.version
-	}
-	into project.buildDir.getPath()+"/sources/java"
-}
-
-// correct task ordering
-afterEvaluate { project ->
-	sourceMainJava.finalizedBy(processSourceMainJava)
 }
 
 processResources
