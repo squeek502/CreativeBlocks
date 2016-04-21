@@ -26,6 +26,8 @@
     "minecraft:quartz_block:1",
     // chiseled quartz
     "minecraft:quartz_block:2",
+    "minecraft:quartz_block:3",
+    "minecraft:quartz_block:4",
     // pillar quartz
     "minecraft:stained_hardened_clay",
     "minecraft:stained_glass",

@@ -35,6 +35,7 @@ public class CommandCreativeBlocks extends CommandBase
         {
             notifyOperators(sender, this, 1, "Reloading Creative Blocks from config...");
             JSONConfigHandler.reload();
+            notifyOperators(sender, this, 1, "Config files reloaded");
         }
         else
         {

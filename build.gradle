@@ -23,6 +23,8 @@ plugins {
 group = project.projectDir.name.toLowerCase()
 archivesBaseName = project.projectDir.name
 version = "${minecraft_version}-${version}"
+targetCompatibility = 1.8
+sourceCompatibility = 1.8
 
 minecraft {
     version = "${minecraft_version}-${forge_version}-${forge_branch}"

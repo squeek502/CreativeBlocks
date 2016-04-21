@@ -41,6 +41,9 @@ import squeek.creativeblocks.network.MessageSetInventorySlot;
 import squeek.creativeblocks.network.NetworkHandler;
 
 import java.io.File;
+import java.util.OptionalInt;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 @Mod(modid = ModInfo.MODID, version = ModInfo.VERSION)
 public class CreativeBlocks
@@ -114,10 +117,15 @@ public class CreativeBlocks
         RayTraceResult target = mc.objectMouseOver;
         World world = mc.theWorld;
         EntityPlayer player = mc.thePlayer;
-        ItemStack blockStack = null;
+        ItemStack pickedBlock = null;
 
         if (target.typeOfHit == RayTraceResult.Type.MISS)
         {
+            // Remove the held item if it's a Fabricator
+            if (Config.pickBlockAirRemovesFabricator && player.getHeldItemMainhand() != null && player.getHeldItemMainhand().getItem() == creativeBlockPlacer)
+            {
+                NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) player.inventory.currentItem, null));
+            }
             return false;
         }
 
@@ -129,58 +137,153 @@ public class CreativeBlocks
 
             if (!block.isAir(state, world, pos))
             {
-                ItemStack pickedBlock = block.getPickBlock(state, target, world, pos, player);
+                ItemStack pickBlock = block.getPickBlock(state, target, world, pos, player);
 
-                if (isCreativeBlock(pickedBlock))
-                    blockStack = pickedBlock;
+                if (isCreativeBlock(pickBlock))
+                {
+                    pickedBlock = pickBlock;
+                }
             }
         }
+        if (pickedBlock == null) // If pick block is not a creative block, fallback to vanilla code
+            return false;
 
-        if (blockStack != null)
+        for (int i = 0; i < player.inventory.mainInventory.length; i++)
         {
-            for (int x = 0; x < InventoryPlayer.getHotbarSize(); x++)
+            ItemStack currentStack = player.inventory.getStackInSlot(i);
+
+            if (currentStack != null && currentStack.getItem() == creativeBlockPlacer)
             {
-                ItemStack stack = player.inventory.getStackInSlot(x);
+                ItemCreativeBlockPlacer placer = (ItemCreativeBlockPlacer) currentStack.getItem();
+                ItemStack stackInBlockPlacer = placer.getBlock(currentStack);
 
-                if (stack != null && stack.getItem() == creativeBlockPlacer)
-                    stack = ((ItemCreativeBlockPlacer) stack.getItem()).getBlock(stack);
-
-                if (stack != null && stack.isItemEqual(blockStack) && ItemStack.areItemStackTagsEqual(stack, blockStack))
+                // Check if pick block is equal to the block stored inside the block placer
+                if (stackInBlockPlacer != null && stackInBlockPlacer.isItemEqual(pickedBlock))
                 {
-                    player.inventory.currentItem = x;
-                    return true;
+                    // Check if player has Fabricator with the "picked" block in it in the hotbar, if true, move to slot
+                    if (i >= 0 && i <= 8) // 0-8 Hotbar slots
+                    {
+                        ItemStack stack = player.inventory.getStackInSlot(i);
+                        if (stack != null && stack.getItem() == creativeBlockPlacer)
+                        {
+                            ItemCreativeBlockPlacer blockPlacer = (ItemCreativeBlockPlacer) stack.getItem();
+                            if (blockPlacer.getBlock(stack).isItemEqual(pickedBlock))
+                            {
+                                player.inventory.currentItem = i;
+                                return true;
+                            }
+                        }
+                    }
+
+                    // Move block placer from main inventory to the player's hotbar
+                    if (i >= 9 && i <= 35) // 9-35 Main inventory slots
+                    {
+                        ItemCreativeBlockPlacer blockPlacer = (ItemCreativeBlockPlacer) currentStack.getItem();
+                        if (blockPlacer.getBlock(currentStack).isItemEqual(pickedBlock))
+                        {
+                            int hotbarSlot = evaluateHotbar(player.inventory, is -> is == null).orElse(-1); // Get the first hotbar slot that is empty
+                            if (hotbarSlot != -1) // Move the Fabricator from main inventory to the hotbar
+                            {
+                                player.inventory.currentItem = hotbarSlot;
+                                NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) i, null));
+                                NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) hotbarSlot, currentStack));
+                                return true;
+                            }
+                            else // If no empty slots were found in the hotbar, we swap the Fabricator in the main inventory with the item in our hand
+                            {
+                                ItemStack toHotbar = currentStack;
+                                ItemStack toMain = player.inventory.getStackInSlot(player.inventory.currentItem);
+                                int toHotbarSlot = player.inventory.currentItem;
+                                NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) i, toMain));
+                                NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) toHotbarSlot, toHotbar));
+                                return true;
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        ItemStack blockPlacer;
-        int slot;
-        if (player.getHeldItemMainhand() != null && player.getHeldItemMainhand().getItem() == creativeBlockPlacer)
+        // If player does not have the block he tried to pick in his inventory at all;
+        // check player's hand if it's empty and give the player a Fabricator with the picked block in
+        if (player.getHeldItemMainhand() == null)
         {
-            blockPlacer = ((ItemCreativeBlockPlacer) player.getHeldItemMainhand().getItem()).onPickBlock(player.getHeldItemMainhand(), target, world, player);
-            slot = player.inventory.currentItem;
-        }
-        else if (blockStack != null)
-        {
-            slot = player.inventory.getFirstEmptyStack();
-            if (slot < 0 || slot >= InventoryPlayer.getHotbarSize())
-            {
-                slot = player.inventory.currentItem;
-            }
-
-            blockPlacer = new ItemStack(creativeBlockPlacer);
-            ((ItemCreativeBlockPlacer) creativeBlockPlacer).setBlock(blockPlacer, blockStack);
-        }
-        else
-        {
-            return false;
+            ItemStack blockPlacer = ItemCreativeBlockPlacer.createItemStack(pickedBlock);
+            NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) player.inventory.currentItem, blockPlacer));
+            return true;
         }
 
-        player.inventory.setInventorySlotContents(slot, blockPlacer);
-        player.inventory.currentItem = slot;
-        NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) slot, blockPlacer));
+        // If player's hand is not empty, get the first empty slot in the player's
+        // hotbar, and give the player a new Fabricator with the picked block in
+        int hotbarSlot = evaluateHotbar(player.inventory, stack -> stack == null).orElse(-1); /*eval(player.inventory, 0, 8, stack -> stack == null).orElse(-1);*/
+        if (hotbarSlot != -1)
+        {
+            ItemStack stack = ItemCreativeBlockPlacer.createItemStack(pickedBlock);
+            player.inventory.currentItem = hotbarSlot;
+            NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) hotbarSlot, stack));
+            return true;
+        }
 
-        return true;
+        // If the player doesn't have any empty slots in h*s hotbar, get the first empty
+        // slot in the player's inventory, move the items in h*s hand to the empty slot
+        // and give the player a new Fabricator and put it in the hotbar slot we just cleared
+        int mainInventoryslot = evaluateInventory(player.inventory, stack -> stack == null).orElse(-1);
+        if (mainInventoryslot != -1)
+        {
+            ItemStack fabricator = ItemCreativeBlockPlacer.createItemStack(pickedBlock);
+            ItemStack toMain = player.inventory.getCurrentItem();
+            NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) mainInventoryslot, toMain));
+            NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) player.inventory.currentItem, fabricator));
+            return true;
+        }
+
+        // If all the above is false, find the first Fabricator in the player's hotbar with _any_ block in it and
+        // change that block to the block we have "picked" on. // TODO: Config?
+        // This does not replace a Vanilla block with the "picked" block. It _MUST_ be a Fabricator. // TODO: Config?
+        hotbarSlot = evaluateHotbar(player.inventory, stack -> stack != null && stack.getItem() == creativeBlockPlacer).orElse(-1);
+        if (hotbarSlot != -1)
+        {
+            ItemStack stack = player.inventory.getStackInSlot(hotbarSlot);
+            ((ItemCreativeBlockPlacer) stack.getItem()).setBlock(stack, pickedBlock);
+            player.inventory.currentItem = hotbarSlot;
+            NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) hotbarSlot, stack));
+            return true;
+        }
+
+        // If all the above is false, find the first Fabricator in the player's main inventory with _any_ block in it and
+        // change the block in it to the "picked" block. Now we swap it with the current item we're holding. // TODO: Config?
+        // This does not replace a Vanilla block with the "picked" block. It _MUST_ be a Fabricator. // TODO: Config?
+        mainInventoryslot = evaluateInventory(player.inventory, stack -> stack != null && stack.getItem() == creativeBlockPlacer).orElse(-1);
+        if (mainInventoryslot != -1)
+        {
+            ItemStack blockPlacer = player.inventory.getStackInSlot(mainInventoryslot);
+            ((ItemCreativeBlockPlacer) blockPlacer.getItem()).setBlock(blockPlacer, pickedBlock);
+            ItemStack hotbarItem = player.inventory.getStackInSlot(player.inventory.currentItem);
+            NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) mainInventoryslot, hotbarItem));
+            NetworkHandler.channel.sendToServer(new MessageSetInventorySlot((byte) player.inventory.currentItem, blockPlacer));
+            return true;
+        }
+        return false; // None of the above matches (inventory is completely full), fall back to vanilla logic. Replaces current item with vanilla blocks if in creative
+    }
+
+    public static OptionalInt eval(InventoryPlayer inventory, int minInclusive, int maxInclusive, Predicate<ItemStack> predicate)
+    {
+        return eval(inventory, IntStream.range(minInclusive, ++maxInclusive), predicate);
+    }
+
+    public static OptionalInt eval(InventoryPlayer inventory, IntStream range, Predicate<ItemStack> predicate)
+    {
+        return range.filter(slot -> predicate.test(inventory.getStackInSlot(slot))).findFirst();
+    }
+
+    public static OptionalInt evaluateHotbar(InventoryPlayer inventory, Predicate<ItemStack> predicate)
+    {
+        return eval(inventory, 0, 8, predicate);
+    }
+
+    public static OptionalInt evaluateInventory(InventoryPlayer inventory, Predicate<ItemStack> predicate)
+    {
+        return eval(inventory, 9, 35, predicate);
     }
 
     public static boolean isCreativeBlock(ItemStack itemStack)

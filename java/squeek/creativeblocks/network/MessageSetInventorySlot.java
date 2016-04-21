@@ -1,7 +1,6 @@
 package squeek.creativeblocks.network;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -41,7 +40,7 @@ public class MessageSetInventorySlot implements IMessage, IMessageHandler<Messag
     @Override
     public IMessage onMessage(MessageSetInventorySlot message, MessageContext ctx)
     {
-        if (ctx.side == Side.SERVER && message.slot < InventoryPlayer.getHotbarSize())
+        if (ctx.side == Side.SERVER && message.slot <= 35)
         {
             ctx.getServerHandler().playerEntity.inventory.setInventorySlotContents(message.slot, message.itemStack);
         }

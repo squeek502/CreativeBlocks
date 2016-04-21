@@ -166,4 +166,11 @@ public class ItemCreativeBlockPlacer extends Item
     {
         return hasBlock(stack);
     }
+
+    public static ItemStack createItemStack(ItemStack pickBlock)
+    {
+        ItemStack ret = new ItemStack(CreativeBlocks.creativeBlockPlacer);
+        ((ItemCreativeBlockPlacer) ret.getItem()).setBlock(ret, pickBlock);
+        return ret;
+    }
 }

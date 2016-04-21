@@ -11,6 +11,8 @@ public class Config
 {
     /** Set to true if 'Creative Blocks' should be one-hit. [Default: false] */
     public static boolean oneHitBreak = false;
+    /** Set to true if "pick blocking" in the air should remove the Fabricator in your hand. [Default: true] */
+    public static boolean pickBlockAirRemovesFabricator = true;
 
     private static Configuration configurationFile;
 
@@ -23,12 +25,16 @@ public class Config
     public static void loadConfigurations()
     {
         configurationFile.load();
-
+        Property property;
         // General
         {
-            Property property = configurationFile.get(Configuration.CATEGORY_GENERAL, "oneHitBreak", false);
+            property = configurationFile.get(Configuration.CATEGORY_GENERAL, "oneHitBreak", false);
             property.setComment("Set to true if 'Creative Blocks' should be one-hit. [Default: false]");
             oneHitBreak = property.getBoolean();
+
+            property = configurationFile.get(Configuration.CATEGORY_GENERAL, "pickBlockAirRemovesFabricator", true);
+            property.setComment("Set to true if \"pick blocking\" in the air should remove the Fabricator in your hand. [Default: true]");
+            pickBlockAirRemovesFabricator = property.getBoolean();
         }
 
         if (configurationFile.hasChanged())
