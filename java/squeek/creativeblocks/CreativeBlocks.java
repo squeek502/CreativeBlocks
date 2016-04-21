@@ -14,12 +14,11 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
-import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInterModComms;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -36,9 +35,9 @@ import squeek.creativeblocks.config.Config;
 import squeek.creativeblocks.config.CreativeBlocksRegistry;
 import squeek.creativeblocks.config.JSONConfigHandler;
 import squeek.creativeblocks.items.ItemCreativeBlockPlacer;
-import squeek.creativeblocks.items.render.CreativeBlocksModelLoader;
 import squeek.creativeblocks.network.MessageSetInventorySlot;
 import squeek.creativeblocks.network.NetworkHandler;
+import squeek.creativeblocks.proxy.ServerProxy;
 
 import java.io.File;
 import java.util.OptionalInt;
@@ -54,6 +53,9 @@ public class CreativeBlocks
     public static CreativeBlocks instance;
     public File sourceFile;
 
+    @SidedProxy(clientSide = ModInfo.CLIENT_PROXY, serverSide = ModInfo.SERVER_PROXY)
+    public static ServerProxy proxy;
+
     public static Item creativeBlockPlacer;
     public static ResourceLocation blockPlacerResourceLocation = new ResourceLocation(ModInfo.MODID_LOWER, "creativeBlockPlacer");
     public static ModelResourceLocation blockPlacerModelResouceLocation = new ModelResourceLocation(ModInfo.MODID_LOWER, "creativeBlockPlacer");
@@ -61,6 +63,9 @@ public class CreativeBlocks
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
+        creativeBlockPlacer = new ItemCreativeBlockPlacer();
+        GameRegistry.register(creativeBlockPlacer, blockPlacerResourceLocation);
+        proxy.preInit(event);
         Config.preInit(event);
         sourceFile = event.getSourceFile();
         MinecraftForge.EVENT_BUS.register(this);
@@ -69,11 +74,6 @@ public class CreativeBlocks
         CreativeBlocksRegistry.init();
         NetworkHandler.init();
 
-        creativeBlockPlacer = new ItemCreativeBlockPlacer();
-        GameRegistry.register(creativeBlockPlacer, blockPlacerResourceLocation);
-
-        ModelLoader.setCustomModelResourceLocation(creativeBlockPlacer, 0, blockPlacerModelResouceLocation);
-        ModelLoaderRegistry.registerLoader(new CreativeBlocksModelLoader());
 
         FMLInterModComms.sendMessage("Waila", "register", "squeek.creativeblocks.integration.waila.WailaRegistrar.register");
         FMLInterModComms.sendMessage("VersionChecker", "addVersionCheck", "http://www.ryanliptak.com/minecraft/versionchecker/squeek502/CreativeBlocks");
@@ -82,6 +82,7 @@ public class CreativeBlocks
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event)
     {
+        proxy.postInit(event);
         JSONConfigHandler.load();
     }
 
