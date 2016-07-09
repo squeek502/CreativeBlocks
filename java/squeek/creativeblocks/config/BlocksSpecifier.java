@@ -72,7 +72,7 @@ public class BlocksSpecifier implements IPackable
         else
         {
             ResourceLocation blockToGet = new ResourceLocation(itemStringParts[0], itemStringParts[1]);
-            Block block = Block.blockRegistry.getObject(blockToGet);
+            Block block = Block.REGISTRY.getObject(blockToGet);
 
             if (block != null)
             {
@@ -125,10 +125,10 @@ public class BlocksSpecifier implements IPackable
     public static List<Block> getAllBlocksOfModID(String modID)
     {
         List<Block> blocks = new ArrayList<Block>();
-        for (ResourceLocation rl : Block.blockRegistry.getKeys())
+        for (ResourceLocation rl : Block.REGISTRY.getKeys())
         {
             if (rl.getResourceDomain().equals(modID))
-                blocks.add(Block.blockRegistry.getObject(rl));
+                blocks.add(Block.REGISTRY.getObject(rl));
         }
         return blocks;
     }

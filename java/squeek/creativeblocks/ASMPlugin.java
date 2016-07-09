@@ -21,7 +21,7 @@ import squeek.creativeblocks.config.Config;
 
 import java.util.Map;
 
-@IFMLLoadingPlugin.MCVersion("1.9")
+@IFMLLoadingPlugin.MCVersion("1.10.2")
 public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 {
     public static boolean isObfuscated = false;
@@ -66,7 +66,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
             AbstractInsnNode targetInsn;
 
             /** {@link net.minecraft.server.management.PlayerInteractionManager#processRightClickBlock(EntityPlayer, World, ItemStack, EnumHand, BlockPos, EnumFacing, float, float, float)}  */
-            method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "processRightClickBlock", isObfuscated ? "(Lzj;Laht;Ladq;Lqm;Lcj;Lcq;FFF)Lqo;" : "(Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/world/World;Lnet/minecraft/item/ItemStack;Lnet/minecraft/util/EnumHand;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;FFF)Lnet/minecraft/util/EnumActionResult;");
+            method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "processRightClickBlock", isObfuscated ? "(Lzs;Laid;Ladz;Lqr;Lcm;Lct;FFF)Lqt;" : "(Lnet/minecraft/entity/player/EntityPlayer;Lnet/minecraft/world/World;Lnet/minecraft/item/ItemStack;Lnet/minecraft/util/EnumHand;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;FFF)Lnet/minecraft/util/EnumActionResult;");
             if (method == null)
                 throw new RuntimeException("Couldn't find PlayerInteractionManager.processRightClickBlock");
             targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
@@ -77,7 +77,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
             if (Config.oneHitBreak)
             {
                 /** {@link net.minecraft.server.management.PlayerInteractionManager#onBlockClicked(BlockPos, EnumFacing)} */
-                method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "onBlockClicked", isObfuscated ? "(Lcj;Lcq;)V" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)V");
+                method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "onBlockClicked", isObfuscated ? "(Lcm;Lct;)V" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)V");
                 if (method == null)
                     throw new RuntimeException("Couldn't find PlayerInteractionManager.onBlockClicked");
                 targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
@@ -86,7 +86,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
                 transformIfCreativeBlock(method, targetInsn, getServerCoordinatesCheckInsns(classNode));
 
                 /** {@link net.minecraft.server.management.PlayerInteractionManager#tryHarvestBlock(BlockPos)} */
-                method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "tryHarvestBlock", isObfuscated ? "(Lcj;)Z" : "(Lnet/minecraft/util/math/BlockPos;)Z");
+                method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "tryHarvestBlock", isObfuscated ? "(Lcm;)Z" : "(Lnet/minecraft/util/math/BlockPos;)Z");
                 if (method == null)
                     throw new RuntimeException("Couldn't find PlayerInteractionManager.tryHarvestBlock");
                 targetInsn = findIsCreativeInsn(method, classNode.name, isObfuscated ? "d" : "isCreative", "()Z");
@@ -104,10 +104,11 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
             AbstractInsnNode targetInsn;
 
             /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#processRightClickBlock(EntityPlayerSP, WorldClient, ItemStack, BlockPos, EnumFacing, Vec3d, EnumHand)} */
-            method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "processRightClickBlock", isObfuscated ? "(Lbmt;Lbku;Ladq;Lcj;Lcq;Lbbj;Lqm;)Lqo;" : "(Lnet/minecraft/client/entity/EntityPlayerSP;Lnet/minecraft/client/multiplayer/WorldClient;Lnet/minecraft/item/ItemStack;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/EnumHand;)Lnet/minecraft/util/EnumActionResult;");
+            method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "processRightClickBlock", isObfuscated ? "(Lbnn;Lbln;Ladz;Lcm;Lct;Lbcb;Lqr;)Lqt;" : "(Lnet/minecraft/client/entity/EntityPlayerSP;Lnet/minecraft/client/multiplayer/WorldClient;Lnet/minecraft/item/ItemStack;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/EnumHand;)Lnet/minecraft/util/EnumActionResult;");
             if (method == null)
                 throw new RuntimeException("Couldn't find PlayerControllerMP.processRightClickBlock");
-            targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahw$a" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+            /** {@link net.minecraft.world.GameType#isCreative()} */
+            targetInsn = findIsCreativeInsn(method, isObfuscated ? "aib" : "net/minecraft/world/GameType", isObfuscated ? "d" : "isCreative", "()Z");
             if (targetInsn == null)
                 throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.onPlayerRightClick");
             transformIfCreativeBlock(method, targetInsn, getItemStackCheckInsns());
@@ -115,27 +116,27 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
             if (Config.oneHitBreak)
             {
                 /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#clickBlock(BlockPos, EnumFacing)}*/
-                method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "clickBlock", isObfuscated ? "(Lcj;Lcq;)Z" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z");
+                method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "clickBlock", isObfuscated ? "(Lcm;Lct;)Z" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z");
                 if (method == null)
                     throw new RuntimeException("Couldn't find PlayerControllerMP.clickBlock");
-                targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahw$a" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+                targetInsn = findIsCreativeInsn(method, isObfuscated ? "aib" : "net/minecraft/world/GameType", isObfuscated ? "d" : "isCreative", "()Z");
                 if (targetInsn == null)
                     throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.clickBlock");
                 transformIfCreativeBlock(method, targetInsn, getClientCoordinatesCheckInsns(classNode));
 
                 /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#onPlayerDamageBlock(BlockPos, EnumFacing)} */
-                method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "onPlayerDamageBlock", isObfuscated ? "(Lcj;Lcq;)Z" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z");
+                method = findMethodNodeOfClass(classNode, isObfuscated ? "b" : "onPlayerDamageBlock", isObfuscated ? "(Lcm;Lct;)Z" : "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/EnumFacing;)Z");
                 if (method == null)
                     throw new RuntimeException("Couldn't find PlayerControllerMP.onPlayerDamageBlock");
-                targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahw$a" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+                targetInsn = findIsCreativeInsn(method, isObfuscated ? "aib" : "net/minecraft/world/GameType", isObfuscated ? "d" : "isCreative", "()Z");
                 if (targetInsn == null)
                     throw new RuntimeException("Couldn't find target instruction in PlayerControllerMP.onPlayerDamageBlock");
                 transformOnPlayerDamageBlock(method, targetInsn, getClientCoordinatesCheckInsns(classNode));
             }
 
             // onPlayerDestroyBlock = func_187103_a
-            /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#func_187103_a(BlockPos)}  */
-            method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "func_187103_a", isObfuscated ? "(Lcj;)Z" : "(Lnet/minecraft/util/math/BlockPos;)Z");
+            /** {@link net.minecraft.client.multiplayer.PlayerControllerMP#onPlayerDestroyBlock(BlockPos)}  */
+            method = findMethodNodeOfClass(classNode, isObfuscated ? "a" : "onPlayerDestroyBlock", isObfuscated ? "(Lcm;)Z" : "(Lnet/minecraft/util/math/BlockPos;)Z");
             if (method == null)
                 throw new RuntimeException("Couldn't find PlayerControllerMP.onPlayerDestroyBlock/func_187103_a");
             transformOnPlayerDestroyBlock(classNode, method);
@@ -252,7 +253,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
     {
         InsnList insns = new InsnList();
         insns.add(new VarInsnNode(Opcodes.ALOAD, 3));
-        insns.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(CreativeBlocks.class), "isCreativeBlock", isObfuscated ? "(Ladq;)Z" : "(Lnet/minecraft/item/ItemStack;)Z", false));
+        insns.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(CreativeBlocks.class), "isCreativeBlock", isObfuscated ? "(Ladz;)Z" : "(Lnet/minecraft/item/ItemStack;)Z", false));
         return insns;
     }
 
@@ -260,10 +261,10 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
     {
         InsnList insns = new InsnList();
         insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-        insns.add(new FieldInsnNode(Opcodes.GETFIELD, classNode.name, isObfuscated ? "a" : "mc", isObfuscated ? "Lbcf;" : "Lnet/minecraft/client/Minecraft;"));
-        insns.add(new FieldInsnNode(Opcodes.GETFIELD, isObfuscated ? "bcf" : "net/minecraft/client/Minecraft", isObfuscated ? "f" : "theWorld", isObfuscated ? "Lbku;" : "Lnet/minecraft/client/multiplayer/WorldClient;"));
+        insns.add(new FieldInsnNode(Opcodes.GETFIELD, classNode.name, isObfuscated ? "a" : "mc", isObfuscated ? "Lbcx;" : "Lnet/minecraft/client/Minecraft;"));
+        insns.add(new FieldInsnNode(Opcodes.GETFIELD, isObfuscated ? "bcx" : "net/minecraft/client/Minecraft", isObfuscated ? "f" : "theWorld", isObfuscated ? "Lbln;" : "Lnet/minecraft/client/multiplayer/WorldClient;"));
         insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
-        insns.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(CreativeBlocks.class), "isCreativeBlock", isObfuscated ? "(Laht;Lcj;)Z" : "(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Z", false));
+        insns.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(CreativeBlocks.class), "isCreativeBlock", isObfuscated ? "(Laid;Lcm;)Z" : "(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Z", false));
         return insns;
     }
 
@@ -271,9 +272,9 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
     {
         InsnList insns = new InsnList();
         insns.add(new VarInsnNode(Opcodes.ALOAD, 0));
-        insns.add(new FieldInsnNode(Opcodes.GETFIELD, classNode.name, isObfuscated ? "a" : "theWorld", isObfuscated ? "Laht;" : "Lnet/minecraft/world/World;"));
+        insns.add(new FieldInsnNode(Opcodes.GETFIELD, classNode.name, isObfuscated ? "a" : "theWorld", isObfuscated ? "Laid;" : "Lnet/minecraft/world/World;"));
         insns.add(new VarInsnNode(Opcodes.ALOAD, 1));
-        insns.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(CreativeBlocks.class), "isCreativeBlock", isObfuscated ? "(Laht;Lcj;)Z" : "(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Z", false));
+        insns.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Type.getInternalName(CreativeBlocks.class), "isCreativeBlock", isObfuscated ? "(Laid;Lcm;)Z" : "(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Z", false));
         return insns;
     }
 
@@ -344,7 +345,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 
         method.instructions.insertBefore(findFirstInstruction(method), toInject);
 
-        AbstractInsnNode targetInsn = findIsCreativeInsn(method, isObfuscated ? "ahw$a" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+        AbstractInsnNode targetInsn = findIsCreativeInsn(method, isObfuscated ? "aib" : "net/minecraft/world/GameType", isObfuscated ? "d" : "isCreative", "()Z");
         if (targetInsn == null)
             throw new RuntimeException("Couldn't find first target instruction in PlayerControllerMP.onPlayerDestroyBlock");
 
@@ -362,7 +363,7 @@ public class ASMPlugin implements IFMLLoadingPlugin, IClassTransformer
 
         method.instructions.insert(ifCreative, toInject);
 
-        targetInsn = findIsCreativeInsn(ifCreative, isObfuscated ? "ahw$a" : "net/minecraft/world/WorldSettings$GameType", isObfuscated ? "d" : "isCreative", "()Z");
+        targetInsn = findIsCreativeInsn(ifCreative, isObfuscated ? "aib" : "net/minecraft/world/GameType", isObfuscated ? "d" : "isCreative", "()Z");
         if (targetInsn == null)
             throw new RuntimeException("Couldn't find second target instruction in PlayerControllerMP.onPlayerDestroyBlock");
 

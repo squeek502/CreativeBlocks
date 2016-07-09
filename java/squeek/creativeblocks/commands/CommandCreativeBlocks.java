@@ -33,9 +33,9 @@ public class CommandCreativeBlocks extends CommandBase
     {
         if (args.length > 0 && args[0].equalsIgnoreCase("reload"))
         {
-            notifyOperators(sender, this, 1, "Reloading Creative Blocks from config...");
+            notifyCommandListener(sender, this, 1, "Reloading Creative Blocks from config...");
             JSONConfigHandler.reload();
-            notifyOperators(sender, this, 1, "Config files reloaded");
+            notifyCommandListener(sender, this, 1, "Config files reloaded");
         }
         else
         {

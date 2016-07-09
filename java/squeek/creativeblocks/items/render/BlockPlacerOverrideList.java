@@ -26,7 +26,7 @@ public class BlockPlacerOverrideList extends ItemOverrideList
         if (stack.getItem() instanceof ItemCreativeBlockPlacer)
         {
             ItemStack pickedBlock = ((ItemCreativeBlockPlacer) stack.getItem()).getBlock(stack);
-            return Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(pickedBlock != null ? pickedBlock : new ItemStack(Blocks.stone));
+            return Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(pickedBlock != null ? pickedBlock : new ItemStack(Blocks.STONE));
         }
         return originalModel;
     }

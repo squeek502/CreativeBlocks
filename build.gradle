@@ -9,7 +9,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
     }
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
@@ -21,13 +21,13 @@ plugins {
 }
 */
 group = project.projectDir.name.toLowerCase()
-archivesBaseName = project.projectDir.name
+archivesBaseName = project.projectDir.name.split("-")[0] // Folder structure looks like this GitHub/CreativeBlocks/CreativeBlocks-<BRANCH>/ so we split on dash
 version = "${minecraft_version}-${version}"
 targetCompatibility = 1.8
 sourceCompatibility = 1.8
 
 minecraft {
-    version = "${minecraft_version}-${forge_version}-${forge_branch}"
+    version = "${minecraft_version}-${forge_version}"
     runDir = "run"
     
     // the mappings can be changed at any time, and must be in the following format.
@@ -35,7 +35,7 @@ minecraft {
     // stable_#            stables are built at the discretion of the MCP team.
     // Use non-default mappings at your own risk. they may not allways work.
     // simply re-run your setup task after changing the mappings to update your workspace.
-    mappings = "snapshot_20160312"
+    mappings = "snapshot_20160518"
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 
     replace "\${version}", project.version
@@ -59,7 +59,7 @@ repositories {
 }
 
 dependencies {
-	deobfCompile "mcp.mobius.waila:Waila:${waila_version}_${minecraft_version}"
+	deobfCompile "mcp.mobius.waila:Waila:${waila_version}"
 }
 
 jar
